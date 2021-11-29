@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<HTML> 
+
+<script src="map_geometry_funcs.js"></script>
+
+<script>
+
+"use strict";
+
+let maxX = 0;
+let maxY = 0;
+let hexEdge = 0;
+let hexHalfX = 0;
+let hexX = 0;
+let hexWidth = 0;
+let hexHalfY = 0;
+let hexY = 0;
+let hexHeight = 0;
+let yOffset = 0;
+let ctx = null;
+let scale = 1;
+
+let currentTool = null;
+
+let terrainHexes = [];
+
+
+function processMouseMove (ev) 
+{
+  const x = xUnitCoordFromMapCoord (ev.offsetX, ev.offsetY);   // So that we enter a new hex when crossing the hex side, not its middle axis
+  const y = yUnitCoordFromMapCoord (ev.offsetX, ev.offsetY);
+
+  showMousePosition (ev.offsetX, ev.offsetY, x, y);
+}
+
+
+function showMousePosition (evx, evy, x, y) {
+  document.getElementById ("pos-tracker").innerHTML = evx + "," + evy + "<br>" + x + ", " + y;
+}
+
+
+function goToDesignPage()
+{
+  document.getElementById("NewMapDialog").style.display = "none";
+  
+  maxX = Number (document.getElementById("maxX").value);
+  maxY = Number (document.getElementById("maxY").value);
+  hexEdge = Number (document.getElementById("hexEdge").value);
+
+  hexHalfX = hexEdge * 0.866025404;
+  hexX     = hexEdge * 2 * 0.866025404;;
+  hexWidth = hexX;
+  hexHalfY = hexEdge / 2;
+  hexY     = hexEdge;
+  hexHeight = hexEdge*2;
+  yOffset = 0.1 * (hexHeight);
+  
+  // Show the palette
+  const thePalette = document.getElementById ("Palette");
+  thePalette.style.display = "initial";
+  
+  // Create the canvas
+  const theCanvas = document.getElementById ("theCanvas");
+  theCanvas.style.display = "initial";
+  theCanvas.width  = maxX * hexX + hexHalfX; 
+  theCanvas.height = maxY * hexY + hexHalfY;
+ 
+  ctx = theCanvas.getContext("2d");
+
+  drawGrid();
+  
+  // Define the scale for terrain icons 
+  scale = (hexY * 2.0) / 100.0;
+}
+
+
+function drawGrid ()
+{
+  ctx.strokeStyle = "silver";
+
+  for (let j = 0, y = 0; j < maxY; j++)
+  {
+    let x = (j % 2) * hexHalfX;
+
+    ctx.moveTo (x, y + hexHalfY);
+    for (let i = 1; i < maxX + 1; i++)
+    {
+      ctx.lineTo (x + hexHalfX, y);
+      ctx.lineTo (x + hexX    , y + hexHalfY);
+      ctx.stroke ();
+      
+      x += hexX;
+    }   
+    
+    // Vertical bars
+    x = (j % 2) * hexHalfX;
+    ctx.moveTo (x, y + hexHalfY);
+    for (let i = 0; i < maxX + 1; i++)
+    {
+      ctx.moveTo (x, y + hexHalfY);
+      ctx.lineTo (x, y + hexHalfY * 3);
+      ctx.stroke ();
+      
+      x += hexX;
+    }   
+
+    y += hexHalfY * 3;
+  }
+}
+
+
+function selectTool (e)
+{
+  const toolClicked = e.target;
+  
+  if (currentTool != null && currentTool.id == toolClicked.id)
+  {
+      // A tool was selected and it is the same that has been clicked
+      // Toggle the tool - i.e. deselect the tool
+      currentTool.style.border = "4px hidden";
+      currentTool = null;
+  }
+  else     // We clicked a new tool
+  {
+    if (currentTool != null)
+    {
+      currentTool.style.border = "4px hidden";
+    }    
+
+    currentTool = e.target;  
+    currentTool.style.border = "4px solid red";
+  }
+}
+
+
+function decorateHex (ev)
+{
+  if (currentTool == null)
+  {
+    return;
+  }
+
+  // Convert client coordinates into map coordinates
+  let theHex = { x: 0, y: 0, features: []};
+  theHex.x = xUnitCoordFromMapCoord (ev.offsetX, ev.offsetY);   // So that we enter a new hex when crossing the hex side, not its middle axis
+  theHex.y = yUnitCoordFromMapCoord (ev.offsetX, ev.offsetY);
+
+  // Search for hex (x, y) in the array terrainHex
+  for (let hex of terrainHexes)
+  {
+    if (hex.x == theHex.x && hex.y == theHex.y)
+    {
+      const i = hex.features.indexOf (currentTool.id);
+    
+      if (i != -1)
+      {
+        // The hex DOES contain that feature
+        // Delete it
+        hex.features.splice (i, 1);
+      }
+      else
+      {
+        // The hex does NOT contain that feature
+        // Add it
+        hex.features.push (currentTool.id);
+      } 
+    
+      // Add the feature icon
+      drawHex (theHex);  
+      return;
+    }
+  }
+
+  // Hex not found, add it
+  // Add the feature 
+  theHex.features.push (currentTool.id);
+  terrainHexes.push (theHex);
+
+  drawHex (theHex);  
+}
+
+
+function drawHex (theHex)
+{
+  const mapX = xMapCoordFromUnitCoord (theHex.x, theHex.y);
+  const mapY = yMapCoordFromUnitCoord (theHex.x, theHex.y);
+
+  const cntr = document.getElementById("Container");
+  
+  // Iterate over all terrain features
+  for (let f of theHex.features)
+  {
+    const d = document.createElement ("DIV");
+    d.setAttribute ("class", "terrain-icon");
+    d.style.top = mapY - (1 - scale) * 3 * hexY +  "px";
+    d.style.left = (mapX - hexHalfX) - (1-scale) * hexX * scale + "px";
+    d.style.transform = "scale(" + scale + "," + scale + ")";
+    cntr.appendChild (d);
+    
+    const img = document.createElement ("IMG");
+    img.src = f + ".png";
+    d.appendChild (img);
+  }
+}
+
+
+
+</script>
+
+<style>
+.palette {
+	position: fixed;
+	left: 0px;
+	top: 0px;
+	height: 105px;
+	width: 100%;
+	display: none;
+	z-index: 1;
+	background-color: white;
+	border-color: black;
+	border-width: 2px;
+	border-style: inset;
+}
+
+.pos_tracker 
+{
+  position: fixed;
+  top: 0px;
+  right: 0;
+  height: 30px;  
+  width: 100px;
+  background-color: black;
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  z-index: 1;
+}
+
+.canvas-container {
+	position: absolute;
+	top: 107px;
+	left: 0px;
+	height: fit-content;
+	z-index: 2;
+}
+
+.the-canvas
+{
+  position: absolute;
+  left: 0px;
+  top:  0px;
+}
+
+.terrain-icon
+{
+  position: absolute;
+  z-index: 3;
+}
+
+
+</style>
+
+<body>
+
+<DIV ID="NewMapDialog">
+  <LABEL FOR="maxX">Size of map (X) in hexes:</LABEL>
+  <INPUT ID="maxX" TYPE="text">
+  <BR>
+  <LABEL FOR="maxY">Size of map (Y) in hexes:</LABEL>
+  <INPUT ID="maxY" TYPE="text">
+  <BR>
+  <LABEL FOR="hexEdge">Size of hex edge:</LABEL>
+  <INPUT ID="hexEdge" TYPE="text">
+  <BR>
+  <INPUT TYPE="BUTTON" VALUE="OK" ONCLICK="goToDesignPage()">
+</DIV>
+
+<!-- Palette -->
+<DIV ID="Palette" class="palette" ONCLICK="selectTool(event)">
+  <TABLE>
+    <TR>
+      <TD><IMG ID="grass" src="grass.png"></TD>
+      <TD><IMG ID="wheat" src="wheat.png"></TD>
+      <TD><IMG ID="forest" src="forest.png"></TD>
+      <TD><IMG ID="hill" src="hill.png"></TD>
+      <TD><IMG ID="mountain" src="mountain.png"></TD>
+      <TD><IMG ID="marsh" src="marsh.png"></TD>
+    </TR>
+  </TABLE>
+
+  <!-- Mouse info -->
+  <DIV ID="pos-tracker" class="pos_tracker">
+  </DIV>
+</DIV>
+
+
+<DIV ID="Container" class="canvas-container">
+  <CANVAS ID="theCanvas" class="the-canvas" style.diplay="none" ONCLICK="decorateHex(event)" ONMOUSEMOVE="processMouseMove(event)">
+  </CANVAS>
+</DIV>
+
+
+</body>
