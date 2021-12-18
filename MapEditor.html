@@ -2,6 +2,7 @@
 <HTML> 
 
 <script src="map_geometry_funcs.js"></script>
+<script src="MapHex.js"></script>
 
 <script>
 
@@ -143,68 +144,44 @@ function decorateHex (ev)
   }
 
   // Convert client coordinates into map coordinates
-  let theHex = { x: 0, y: 0, features: []};
-  theHex.x = xUnitCoordFromMapCoord (ev.offsetX, ev.offsetY);   // So that we enter a new hex when crossing the hex side, not its middle axis
-  theHex.y = yUnitCoordFromMapCoord (ev.offsetX, ev.offsetY);
-
+  const x = xUnitCoordFromMapCoord (ev.x, ev.y - 105);  // Generalise. 105 is the height of the palette
+  const y = yUnitCoordFromMapCoord (ev.x, ev.y - 105);
+  
   // Search for hex (x, y) in the array terrainHex
   for (let hex of terrainHexes)
   {
-    if (hex.x == theHex.x && hex.y == theHex.y)
+    if (x == hex.x && y == hex.y)
     {
-      const i = hex.features.indexOf (currentTool.id);
-    
-      if (i != -1)
+      // Hex already exists
+      // Toggle the feature
+      hex.toggleFeature (currentTool.id);
+      
+      if (hex.isClear ())
       {
-        // The hex DOES contain that feature
-        // Delete it
-        hex.features.splice (i, 1);
+        // The hex doesn't contain any feature - delete it
+              
       }
-      else
-      {
-        // The hex does NOT contain that feature
-        // Add it
-        hex.features.push (currentTool.id);
-      } 
-    
-      // Add the feature icon
-      drawHex (theHex);  
       return;
     }
   }
 
   // Hex not found, add it
-  // Add the feature 
-  theHex.features.push (currentTool.id);
+  // Add the feature
+  const theHex = new MapHex (x, y); 
+  theHex.addFeature (currentTool.id);
   terrainHexes.push (theHex);
-
-  drawHex (theHex);  
 }
 
-
+/*
 function drawHex (theHex)
 {
   const mapX = xMapCoordFromUnitCoord (theHex.x, theHex.y);
   const mapY = yMapCoordFromUnitCoord (theHex.x, theHex.y);
 
-  const cntr = document.getElementById("Container");
   
-  // Iterate over all terrain features
-  for (let f of theHex.features)
-  {
-    const d = document.createElement ("DIV");
-    d.setAttribute ("class", "terrain-icon");
-    d.style.top = mapY - (1 - scale) * 3 * hexY +  "px";
-    d.style.left = (mapX - hexHalfX) - (1-scale) * hexX * scale + "px";
-    d.style.transform = "scale(" + scale + "," + scale + ")";
-    cntr.appendChild (d);
-    
-    const img = document.createElement ("IMG");
-    img.src = f + ".png";
-    d.appendChild (img);
-  }
-}
 
+}
+*/
 
 
 </script>
@@ -257,7 +234,7 @@ function drawHex (theHex)
 {
   position: absolute;
   z-index: 3;
-  opacity: 0.2;
+  opacity: 0.4;
 }
 
 
@@ -299,10 +276,14 @@ function drawHex (theHex)
 </DIV>
 
 
-<DIV ID="Container" class="canvas-container">
-  <CANVAS ID="theCanvas" class="the-canvas" style.diplay="none" ONCLICK="decorateHex(event)" ONMOUSEMOVE="processMouseMove(event)">
+<DIV ID="Container" class="canvas-container" ONMOUSEMOVE="processMouseMove(event)" ONCLICK="decorateHex(event)">
+  <CANVAS ID="theCanvas" class="the-canvas" style.diplay="none">
   </CANVAS>
 </DIV>
 
+
+<script type="text/javascript">
+  const cntr = document.getElementById("Container");
+</script>
 
 </body>
