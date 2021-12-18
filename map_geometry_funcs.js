@@ -15,22 +15,36 @@ function xMapCoordFromUnitCoord (unitX, unitY)
 // Return the absolute y coordinate of the centre of the hex of coordinate unitX, unitY
 function yMapCoordFromUnitCoord (unitX, unitY)
 {
-  return 0.75 * hexY * 2 * unitY;
+  return 0.75 * hexY * 2 * unitY + hexHalfY;
 }
 
 function xUnitCoordFromMapCoord (mapX, mapY)
 {
-  const y = Math.floor (mapY / (2 * hexY));
+  const y = yUnitCoordFromMapCoord (maxX, mapY);
+
+//  console.log (mapX, mapY, y);
 
   if ((y % 2) == 0)
     return Math.floor (mapX / hexWidth);
   else
-    return Math.floor (mapX / hexWidth - 0.5);
+    return Math.floor ((mapX - hexHalfX) / hexWidth);
 }
 
 function yUnitCoordFromMapCoord (mapX, mapY)
 {
-  return Math.floor (mapY / hexHeight);
+  const offsetToRemove = hexHalfY;
+  const y1 = mapY - offsetToRemove;
+  
+  if (y1 < 0)
+  {
+    return 0;
+  }
+
+  const result = Math.floor (y1 / (hexHalfY + hexY));
+  if (isNaN (result))
+    console.log (mapX, mapY, y1, result)
+  
+  return result; 
 }
 
 

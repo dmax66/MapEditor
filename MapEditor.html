@@ -27,7 +27,7 @@ let terrainHexes = [];
 
 function processMouseMove (ev) 
 {
-  const x = xUnitCoordFromMapCoord (ev.offsetX, ev.offsetY);   // So that we enter a new hex when crossing the hex side, not its middle axis
+  const x = xUnitCoordFromMapCoord (ev.offsetX, ev.offsetY);   
   const y = yUnitCoordFromMapCoord (ev.offsetX, ev.offsetY);
 
   showMousePosition (ev.offsetX, ev.offsetY, x, y);
@@ -50,9 +50,11 @@ function goToDesignPage()
   hexHalfX = hexEdge * 0.866025404;
   hexX     = hexEdge * 2 * 0.866025404;;
   hexWidth = hexX;
+
   hexHalfY = hexEdge / 2;
   hexY     = hexEdge;
   hexHeight = hexEdge*2;
+
   yOffset = 0.1 * (hexHeight);
   
   // Show the palette
@@ -232,7 +234,7 @@ function drawHex (theHex)
   background-color: black;
   color: white;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 10px;
+  font-size: 12px;
   z-index: 1;
 }
 
@@ -255,6 +257,7 @@ function drawHex (theHex)
 {
   position: absolute;
   z-index: 3;
+  opacity: 0.2;
 }
 
 
@@ -285,6 +288,8 @@ function drawHex (theHex)
       <TD><IMG ID="hill" src="hill.png"></TD>
       <TD><IMG ID="mountain" src="mountain.png"></TD>
       <TD><IMG ID="marsh" src="marsh.png"></TD>
+      <TD><IMG ID="town" src="town.png"></TD>
+      <TD><IMG ID="fortress" src="fortress.png"></TD>
     </TR>
   </TABLE>
 
