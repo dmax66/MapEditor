@@ -1,0 +1,57 @@
+.palette {
+	position: fixed;
+	left: 0px;
+	top: 0px;
+	height: 105px;
+	width: 100%;
+	display: none;
+	z-index: 1;
+	background-color: white;
+	border-color: black;
+	border-width: 2px;
+	border-style: inset;
+};
+
+.mousepos {
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  height: 30px;  
+  width: 100px;
+  background-color: black;
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  z-index: 1;
+};
+
+.canvas-container {
+	position: absolute;
+	top: 115px;
+	left: 0px;
+	height: fit-content;
+	z-index: 2;
+}
+
+.the-canvas
+{
+  position: absolute;
+  left: 0px;
+  top:  110px;
+}
+
+.terrain-icon
+{
+  position: absolute;
+  z-index: 3;
+  opacity: 0.4;
+}
+
+.menu-button
+{
+  width = 100px;
+  height = 20px;
+  font-family: "Arial";
+  font-size: 15px;
+}
+

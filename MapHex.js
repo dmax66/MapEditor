@@ -28,15 +28,15 @@ class MapHex
 
   addFeature (f)
   {
-    const mapX = xMapCoordFromUnitCoord (this.x, this.y);
-    const mapY = yMapCoordFromUnitCoord (this.x, this.y);
+    const mapX = theMap.xMapCoordFromUnitCoord (this.x, this.y);
+    const mapY = theMap.yMapCoordFromUnitCoord (this.x, this.y);
 
     const d = document.createElement ("DIV");
     d.setAttribute ("class", "terrain-icon");
 
-    d.style.top = mapY - (1 - scale) * 3 * hexY +  "px";
-    d.style.left = (mapX - hexHalfX) - (1-scale) * hexX * scale + "px";
-    d.style.transform = "scale(" + scale + "," + scale + ")";
+    d.style.top = mapY - (1 - theMap.scale) * 3 * theMap.hexY +  "px";
+    d.style.left = (mapX - theMap.hexHalfX) - (1-theMap.scale) * theMap.hexX * theMap.scale + "px";
+    d.style.transform = "scale(" + theMap.scale + "," + theMap.scale + ")";
     cntr.appendChild (d);
     
     const img = document.createElement ("IMG");
@@ -74,5 +74,7 @@ class MapHex
   {
     return (this.features.length == 0);  
   }
+  
+
 
 }

@@ -1,63 +1,44 @@
-<!DOCTYPE html>
+<!DOCtype html>
 <HTML> 
 
-<script src="map_geometry_funcs.js"></script>
 <script src="MapHex.js"></script>
+<script src="GameMap.js"></script>
 
 <script>
 
 "use strict";
 
-let maxX = 0;
-let maxY = 0;
-let hexEdge = 0;
-let hexHalfX = 0;
-let hexX = 0;
-let hexWidth = 0;
-let hexHalfY = 0;
-let hexY = 0;
-let hexHeight = 0;
-let yOffset = 0;
-let ctx = null;
 let scale = 1;
-
 let currentTool = null;
-
-let terrainHexes = [];
+let theMap = null;
 
 
 function processMouseMove (ev) 
 {
-  const x = xUnitCoordFromMapCoord (ev.offsetX, ev.offsetY);   
-  const y = yUnitCoordFromMapCoord (ev.offsetX, ev.offsetY);
+  const x = theMap.xUnitCoordFromMapCoord (ev.offsetX, ev.offsetY);   
+  const y = theMap.yUnitCoordFromMapCoord (ev.offsetX, ev.offsetY);
 
   showMousePosition (ev.offsetX, ev.offsetY, x, y);
 }
 
 
-function showMousePosition (evx, evy, x, y) {
-  document.getElementById ("pos-tracker").innerHTML = evx + "," + evy + "<br>" + x + ", " + y;
+function showMousePosition (evx, evy, x, y) 
+{
+  posTracker.innerHTML = evx + "," + evy + "<br>" + x + ", " + y;
 }
 
 
 function goToDesignPage()
 {
-  document.getElementById("NewMapDialog").style.display = "none";
+  document.getElementById ("NewMapDialog").style.display = "none";
+  document.getElementById ("Container").style.display = "block";
+  document.getElementById ("Palette").style.display = "block";
+  document.getElementById ("Menu").style.display = "block";
   
-  maxX = Number (document.getElementById("maxX").value);
-  maxY = Number (document.getElementById("maxY").value);
-  hexEdge = Number (document.getElementById("hexEdge").value);
+  const sizeX = Number (document.getElementById("maxX").value);
+  const sizeY = Number (document.getElementById("maxY").value);
+  const hexEdge = Number (document.getElementById("hexEdge").value);
 
-  hexHalfX = hexEdge * 0.866025404;
-  hexX     = hexEdge * 2 * 0.866025404;;
-  hexWidth = hexX;
-
-  hexHalfY = hexEdge / 2;
-  hexY     = hexEdge;
-  hexHeight = hexEdge*2;
-
-  yOffset = 0.1 * (hexHeight);
-  
   // Show the palette
   const thePalette = document.getElementById ("Palette");
   thePalette.style.display = "initial";
@@ -65,50 +46,9 @@ function goToDesignPage()
   // Create the canvas
   const theCanvas = document.getElementById ("theCanvas");
   theCanvas.style.display = "initial";
-  theCanvas.width  = maxX * hexX + hexHalfX; 
-  theCanvas.height = maxY * hexY + hexHalfY;
  
-  ctx = theCanvas.getContext("2d");
-
-  drawGrid();
-  
-  // Define the scale for terrain icons 
-  scale = (hexY * 2.0) / 100.0;
-}
-
-
-function drawGrid ()
-{
-  ctx.strokeStyle = "silver";
-
-  for (let j = 0, y = 0; j < maxY; j++)
-  {
-    let x = (j % 2) * hexHalfX;
-
-    ctx.moveTo (x, y + hexHalfY);
-    for (let i = 1; i < maxX + 1; i++)
-    {
-      ctx.lineTo (x + hexHalfX, y);
-      ctx.lineTo (x + hexX    , y + hexHalfY);
-      ctx.stroke ();
-      
-      x += hexX;
-    }   
-    
-    // Vertical bars
-    x = (j % 2) * hexHalfX;
-    ctx.moveTo (x, y + hexHalfY);
-    for (let i = 0; i < maxX + 1; i++)
-    {
-      ctx.moveTo (x, y + hexHalfY);
-      ctx.lineTo (x, y + hexHalfY * 3);
-      ctx.stroke ();
-      
-      x += hexX;
-    }   
-
-    y += hexHalfY * 3;
-  }
+  theMap = new GameMap (sizeX, sizeY, hexEdge, theCanvas);
+  theMap.drawGrid();
 }
 
 
@@ -136,57 +76,38 @@ function selectTool (e)
 }
 
 
-function decorateHex (ev)
+function newMap ()
 {
-  if (currentTool == null)
-  {
-    return;
-  }
-
-  // Convert client coordinates into map coordinates
-  const x = xUnitCoordFromMapCoord (ev.x, ev.y - 105);  // Generalise. 105 is the height of the palette
-  const y = yUnitCoordFromMapCoord (ev.x, ev.y - 105);
-  
-  // Search for hex (x, y) in the array terrainHex
-  for (let hex of terrainHexes)
-  {
-    if (x == hex.x && y == hex.y)
-    {
-      // Hex already exists
-      // Toggle the feature
-      hex.toggleFeature (currentTool.id);
-      
-      if (hex.isClear ())
-      {
-        // The hex doesn't contain any feature - delete it
-              
-      }
-      return;
-    }
-  }
-
-  // Hex not found, add it
-  // Add the feature
-  const theHex = new MapHex (x, y); 
-  theHex.addFeature (currentTool.id);
-  terrainHexes.push (theHex);
+  document.getElementById ("NewMapDialog").style.display="block";
+  document.getElementById ("Menu").style.display="none";
 }
-
-/*
-function drawHex (theHex)
-{
-  const mapX = xMapCoordFromUnitCoord (theHex.x, theHex.y);
-  const mapY = yMapCoordFromUnitCoord (theHex.x, theHex.y);
-
-  
-
-}
-*/
-
 
 </script>
 
 <style>
+
+.mousepos {
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  height: auto;  
+  width: 100px;
+  background-color: black;
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  z-index: 1;
+}
+
+.canvas-container {
+	position: absolute;
+	top: 115px;
+	left: 0px;
+	height: fit-content;
+	z-index: 2;
+}
+
+
 .palette {
 	position: fixed;
 	left: 0px;
@@ -199,35 +120,13 @@ function drawHex (theHex)
 	border-color: black;
 	border-width: 2px;
 	border-style: inset;
-}
-
-.pos_tracker 
-{
-  position: fixed;
-  top: 0px;
-  right: 0;
-  height: 30px;  
-  width: 100px;
-  background-color: black;
-  color: white;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 12px;
-  z-index: 1;
-}
-
-.canvas-container {
-	position: absolute;
-	top: 107px;
-	left: 0px;
-	height: fit-content;
-	z-index: 2;
-}
+};
 
 .the-canvas
 {
   position: absolute;
   left: 0px;
-  top:  0px;
+  top:  110px;
 }
 
 .terrain-icon
@@ -235,55 +134,73 @@ function drawHex (theHex)
   position: absolute;
   z-index: 3;
   opacity: 0.4;
+  border-width: 0;
+  padding: 0 0 0 0;
+  margin: 0 0 0 0;
 }
 
-
+.menu-button
+{
+  width = 100px;
+  height = 20px;
+  font-family: "Arial";
+  font-size: 15px;
+}
 </style>
 
 <body>
+<div id="NewMapDialog" style="display:none">
+  <label for="maxX">Size of map (X) in hexes:</label>
+  <input id="maxX" type="text">
+  <br>
+  <label for="maxY">Size of map (Y) in hexes:</label>
+  <input id="maxY" type="text">
+  <br>
+  <label for="hexEdge">Size of hex edge:</abel>
+  <input id="hexEdge" type="text">
+  <br>
+  <input type="BUTTON" value="OK" onclick="goToDesignPage()">
+</div>
 
-<DIV ID="NewMapDialog">
-  <LABEL FOR="maxX">Size of map (X) in hexes:</LABEL>
-  <INPUT ID="maxX" TYPE="text">
-  <BR>
-  <LABEL FOR="maxY">Size of map (Y) in hexes:</LABEL>
-  <INPUT ID="maxY" TYPE="text">
-  <BR>
-  <LABEL FOR="hexEdge">Size of hex edge:</LABEL>
-  <INPUT ID="hexEdge" TYPE="text">
-  <BR>
-  <INPUT TYPE="BUTTON" VALUE="OK" ONCLICK="goToDesignPage()">
-</DIV>
+<!-- Menu -->
+<div id="Menu" style="position:fixed; top:0px">
+  <input type="BUTTON" value="New Map" class="menu-button" onclick="newMap()">
+  <input type="BUTTON" value="Load Map" class="menu-button" onclick="loadMap()">
+  <input type="BUTTON" value="Save Map" class="menu-button" onclick="newMap()">
+</div>
 
 <!-- Palette -->
-<DIV ID="Palette" class="palette" ONCLICK="selectTool(event)">
-  <TABLE>
-    <TR>
-      <TD><IMG ID="grass" src="grass.png"></TD>
-      <TD><IMG ID="wheat" src="wheat.png"></TD>
-      <TD><IMG ID="forest" src="forest.png"></TD>
-      <TD><IMG ID="hill" src="hill.png"></TD>
-      <TD><IMG ID="mountain" src="mountain.png"></TD>
-      <TD><IMG ID="marsh" src="marsh.png"></TD>
-      <TD><IMG ID="town" src="town.png"></TD>
-      <TD><IMG ID="fortress" src="fortress.png"></TD>
-    </TR>
-  </TABLE>
+<div id="Palette" class="palette" onclick="selectTool(event)" style="display:none; position:fixed">
+  <table>
+    <tr>
+      <td><img id="grass" src="grass.png"></td>
+      <td><img id="wheat" src="wheat.png"></td>
+      <td><img id="forest" src="forest.png"></td>
+      <td><img id="hill" src="hill.png"></td>
+      <td><img id="mountain" src="mountain.png"></td>
+      <td><img id="marsh" src="marsh.png"></td>
+      <td><img id="town" src="town.png"></td>
+      <td><img id="fortress" src="fortress.png"></td>
+    </tr>
+  </table>
 
   <!-- Mouse info -->
-  <DIV ID="pos-tracker" class="pos_tracker">
-  </DIV>
-</DIV>
+  <span class="mousepos">
+    <pre id="pos-tracker" ></pre>
+  </span>
+</div>
 
 
-<DIV ID="Container" class="canvas-container" ONMOUSEMOVE="processMouseMove(event)" ONCLICK="decorateHex(event)">
-  <CANVAS ID="theCanvas" class="the-canvas" style.diplay="none">
-  </CANVAS>
-</DIV>
+<div id="Container" class="canvas-container" ONMOUSEMOVE="processMouseMove(event)" ONCLICK="theMap.decorateHex(event.x, event.y)" style="display:none;">
+  <canvas id="theCanvas" class="the-canvas">
+  </canvas>
+</div>
 
 
 <script type="text/javascript">
   const cntr = document.getElementById("Container");
+  const posTracker = document.getElementById ("pos-tracker");
+ 
 </script>
 
 </body>

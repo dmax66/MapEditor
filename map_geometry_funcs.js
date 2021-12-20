@@ -20,7 +20,7 @@ function yMapCoordFromUnitCoord (unitX, unitY)
 
 function xUnitCoordFromMapCoord (mapX, mapY)
 {
-  const y = yUnitCoordFromMapCoord (maxX, mapY);
+  const y = yUnitCoordFromMapCoord (mapX, mapY);
 
 //  console.log (mapX, mapY, y);
 
@@ -145,14 +145,4 @@ function addElemToArrayWODuplicates (newSet, result) {
 }
 
 
-function distanceSquareInMapCoords (x1, y1, x2, y2) {
-  const result = (x2-x1)*(x2-x1) + (y2-y1)*(y2-y1);
-  return result;
-}
-
-
-function distanceSquareInUnitCoords (x1, y1, x2, y2) {
-  const result = distanceSquareInMapCoords (x1, y1, x2, y2) / (hexHeight*hexHeight);
-  return result;
-}
 
